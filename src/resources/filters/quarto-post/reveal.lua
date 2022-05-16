@@ -2,7 +2,7 @@
 -- Copyright (C) 2021 by RStudio, PBC
 
 function reveal()
-  if isRevealJsOutput() then
+  if _quarto.doc.isRevealJsOutput() then
     return {
       Div = applyPosition,
       Span = applyPosition,

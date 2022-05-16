@@ -53,7 +53,7 @@ local function columnOutputLocation(el, fragment)
 end
 
 function outputLocation()
-  if isRevealJsOutput() then
+  if _quarto.doc.isRevealJsOutput() then
     return {
       Pandoc = function(doc)
         local blocks = doc.blocks

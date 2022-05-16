@@ -2,7 +2,7 @@
 -- Copyright (C) 2021 by RStudio, PBC
 
 function tikz()
-  if isLatexOutput() then
+  if _quarto.doc.isLatexOutput() then
     return {
       Image = function(image)
         if latexIsTikzImage(image) then

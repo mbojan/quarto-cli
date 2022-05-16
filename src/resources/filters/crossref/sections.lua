@@ -91,7 +91,7 @@ function currentSectionLevel()
 end
 
 function numberSections()
-  return not isLatexOutput() and numberSectionsOptionEnabled()
+  return not _quarto.doc.isLatexOutput() and numberSectionsOptionEnabled()
 end
 
 function numberSectionsOptionEnabled()

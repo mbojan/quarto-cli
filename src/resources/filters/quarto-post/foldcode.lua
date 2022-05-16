@@ -4,7 +4,7 @@
 function foldCode()
   return {
     CodeBlock = function(block)
-      if isHtmlOutput() then
+      if _quarto.doc.isHtmlOutput() then
         if block.attr.classes:includes("cell-code") then
           local fold = foldAttribute(block)
           local summary = summaryAttribute(block)

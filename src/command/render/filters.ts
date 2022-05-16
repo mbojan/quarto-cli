@@ -50,7 +50,6 @@ import { removePandocArgs } from "./flags.ts";
 import * as ld from "../../core/lodash.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
-import { isWindows } from "../../core/platform.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { authorsFilter, authorsFilterActive } from "./authors.ts";
 import {
@@ -64,12 +63,13 @@ const kProjectOffset = "project-offset";
 
 const kResultsFile = "results-file";
 
-export async function filterParamsJson(
+export function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
   filterParams: Record<string, unknown>,
   resultsFile: string,
+  dependenciesFile: string,
 ) {
   // extract include params (possibly mutating it's arguments)
   const includes = options.format.render[kMergeIncludes] !== false
@@ -89,7 +89,7 @@ export async function filterParamsJson(
 
   const params: Metadata = {
     ...includes,
-    ...await initFilterParams(),
+    ...initFilterParams(dependenciesFile),
     ...projectFilterParams(options),
     ...quartoColumnParams,
     ...quartoFilterParams(options),
@@ -106,16 +106,16 @@ export function removeFilterParmas(metadata: Metadata) {
   delete metadata[kQuartoParams];
 }
 
-export function quartoInitFilter() {
-  return resourcePath("filters/init/init.lua");
-}
-
 export function quartoPreFilter() {
   return resourcePath("filters/quarto-pre/quarto-pre.lua");
 }
 
 export function quartoPostFilter() {
   return resourcePath("filters/quarto-post/quarto-post.lua");
+}
+
+export function quartoFinalizeFilter() {
+  return resourcePath("filters/quarto-finalize/quarto-finalize.lua");
 }
 
 function extractIncludeParams(
@@ -462,14 +462,15 @@ function extensionShortcodes(options: PandocOptions) {
   return extensionShortcodes;
 }
 
-function initFilterParams() {
+function initFilterParams(dependenciesFile: string) {
   const params: Metadata = {};
   if (Deno.build.os === "windows") {
     const value = readCodePage();
     if (value) {
-      params["windows-codepage"] = value;
+      Deno.env.set("QUARTO_WIN_CODEPAGE", value);
     }
   }
+  Deno.env.set("QUARTO_FILTER_DEPENDENCY_FILE", dependenciesFile);
   return params;
 }
 
@@ -478,10 +479,6 @@ const kQuartoFilterMarker = "quarto";
 export function resolveFilters(filters: string[], options: PandocOptions) {
   // build list of quarto filters
   const quartoFilters: string[] = [];
-  // windows needs the init filter to patch utf8 filename handling
-  if (isWindows()) {
-    quartoFilters.push(quartoInitFilter());
-  }
   quartoFilters.push(quartoPreFilter());
   if (crossrefFilterActive(options)) {
     quartoFilters.push(crossrefFilter());
@@ -518,6 +515,9 @@ export function resolveFilters(filters: string[], options: PandocOptions) {
   if (citeproc) {
     filters.push("citeproc");
   }
+
+  // The finalizer for Quarto
+  filters.push(quartoFinalizeFilter());
 
   // return filters
   if (filters.length > 0) {

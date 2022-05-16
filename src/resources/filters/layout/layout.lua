@@ -32,7 +32,6 @@ import("columns.lua")
 import("options.lua")
 import("columns-preprocess.lua")
 import("../common/base64.lua")
-import("../common/json.lua")
 import("../common/latex.lua")
 import("../common/pandoc.lua")
 import("../common/validate.lua")
@@ -64,17 +63,17 @@ function layoutPanels()
         
         -- call the panel layout functions
         local panel
-        if isLatexOutput() then
+        if _quarto.doc.isLatexOutput() then
           panel = latexPanel(el, layout, caption)
-        elseif isHtmlOutput() then
+        elseif _quarto.doc.isHtmlOutput() then
           panel = htmlPanel(el, layout, caption)
-        elseif isDocxOutput() then
+        elseif _quarto.doc.isDocxOutput() then
           panel = tableDocxPanel(el, layout, caption)
-        elseif isOdtOutput() then
+        elseif _quarto.doc.isOdtOutput() then
           panel = tableOdtPanel(el, layout, caption)
-        elseif isWordProcessorOutput() then
+        elseif _quarto.doc.isWordProcessorOutput() then
           panel = tableWpPanel(el, layout, caption)
-        elseif isPowerPointOutput() then
+        elseif _quarto.doc.isPowerPointOutput() then
           panel = pptxPanel(el, layout, caption)
         else
           panel = tablePanel(el, layout, caption)
@@ -112,7 +111,7 @@ function requiresPanelLayout(divEl)
   if hasLayoutAttributes(divEl) then
     return true
   -- latex and html require special layout markup for subcaptions
-  elseif (isLatexOutput() or isHtmlOutput()) and 
+  elseif (_quarto.doc.isLatexOutput() or _quarto.doc.isHtmlOutput()) and 
           divEl.attr.classes:includes("tbl-parent") then
     return true
   else 

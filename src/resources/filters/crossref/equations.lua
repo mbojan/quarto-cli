@@ -43,7 +43,7 @@ function processEquations(blockEl)
         local eq = mathInlines[1]
 
         -- write equation
-        if isLatexOutput() then
+        if _quarto.doc.isLatexOutput() then
           targetInlines:insert(pandoc.RawInline("latex", "\\begin{equation}"))
           targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
           targetInlines:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}\\end{equation}"))
